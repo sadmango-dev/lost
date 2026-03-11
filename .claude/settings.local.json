@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install gsap)",
+      "Bash(npx tsc --noEmit)"
+    ]
+  }
+}

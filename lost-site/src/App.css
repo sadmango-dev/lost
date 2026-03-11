@@ -1,0 +1,170 @@
+/* ============================================================
+   App layout
+   ============================================================ */
+
+.app {
+  position: relative;
+  width: 100%;
+}
+
+/* Scroll spacer — gives the page its scrollable height */
+.scroll-spacer {
+  height: 600vh;
+  width: 100%;
+  pointer-events: none;
+}
+
+/* Fixed SVG scene overlay */
+.scene-svg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ============================================================
+   Paper texture overlay
+   ============================================================ */
+.texture-overlay {
+  position: fixed;
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* ============================================================
+   Title
+   ============================================================ */
+.site-title {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-size: clamp(3rem, 8vw, 7rem);
+  color: var(--color-ink);
+  opacity: 0.08;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 15;
+  transition: opacity 0.1s linear;
+}
+
+/* ============================================================
+   Scroll hint
+   ============================================================ */
+.scroll-hint {
+  position: fixed;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-weight: 300;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 15;
+  animation: pulse 2.4s ease-in-out infinite;
+  transition: opacity 0.4s ease;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 0.2; }
+}
+
+/* ============================================================
+   Split divider
+   ============================================================ */
+.split-divider {
+  position: fixed;
+  top: 50vh;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--color-divider);
+  pointer-events: none;
+  z-index: 12;
+}
+
+/* ============================================================
+   Bottom panel
+   ============================================================ */
+.bottom-panel {
+  position: fixed;
+  top: 50vh;
+  left: 0;
+  right: 0;
+  height: 50vh;
+  overflow: hidden;
+  z-index: 11;
+  pointer-events: none;
+}
+
+.bottom-panel-inner {
+  width: 100%;
+  /* Content sections stack vertically inside */
+}
+
+/* ============================================================
+   Content sections
+   ============================================================ */
+.content-section {
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-weight: 300;
+  font-size: 0.6rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: 1.4rem;
+}
+
+.section-heading {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  color: var(--color-ink);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  margin-bottom: 1.2rem;
+}
+
+.section-divider-gold {
+  width: 40px;
+  height: 1px;
+  background: var(--color-gold);
+  opacity: 0.35;
+  margin: 0 auto 1.4rem;
+}
+
+.section-body {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-weight: 300;
+  font-size: 0.75rem;
+  line-height: 1.9;
+  color: var(--color-ink-muted);
+  max-width: 480px;
+  letter-spacing: 0.02em;
+}
