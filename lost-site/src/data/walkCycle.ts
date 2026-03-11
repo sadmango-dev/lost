@@ -1,4 +1,9 @@
 // Walk cycle keyframe poses and interpolation utilities
+//
+// Coordinate conventions (all relative to hip center at origin):
+//   - Leg offsets: relative to hip (hx, hy)
+//   - Arm offsets: relative to shoulder (sx, sy = hy - TORSO_HEIGHT)
+//   - Positive Y = down (SVG). Arms ALWAYS have positive Y (they hang down from shoulder).
 
 export interface LimbEndpoint {
   x: number;
@@ -6,175 +11,162 @@ export interface LimbEndpoint {
 }
 
 export interface Pose {
-  headY: number;
-  hipY: number;
-  leftUpperLeg: LimbEndpoint;
-  leftLowerLeg: LimbEndpoint;
+  hipY: number;           // vertical offset of hip from baseline (+ = dip down, - = rise up)
+  leftUpperLeg:  LimbEndpoint; // hip → left knee
+  leftLowerLeg:  LimbEndpoint; // hip → left foot   (absolute, not from knee)
   rightUpperLeg: LimbEndpoint;
   rightLowerLeg: LimbEndpoint;
-  leftUpperArm: LimbEndpoint;
-  leftForearm: LimbEndpoint;
+  leftUpperArm:  LimbEndpoint; // shoulder → left elbow
+  leftForearm:   LimbEndpoint; // shoulder → left hand (absolute, not from elbow)
   rightUpperArm: LimbEndpoint;
-  rightForearm: LimbEndpoint;
+  rightForearm:  LimbEndpoint;
 }
 
-// All coordinates are relative to the stickman's center X (0) and hip Y (0)
-// Positive Y is down in SVG space
-const TORSO_HEIGHT = 38;
-const HEAD_RADIUS = 12;
+// ─── Proportions (matching reference stickman 80×120 viewBox, scaled to viewport) ───
+// TORSO_HEIGHT = 40, HEAD_RADIUS = 10 (defined & used in Stickman.tsx)
+// Upper leg ≈ 19px, Lower leg ≈ 18px  →  feet land ~36px below hip
+// Upper arm ≈ 16px, Forearm ≈ 13px
+// ──────────────────────────────────────────────────────────────────────────────────────
 
-// 6-pose walk cycle: one full stride
-// Pose 0: Right leg forward (contact) — legs spread wide, body LOW
-// Pose 1: Weight shifting onto right leg — left leg lifting
-// Pose 2: Left leg passing through (midstance) — body HIGH, legs close
-// Pose 3: Left leg forward (contact) — legs spread wide, body LOW
-// Pose 4: Weight shifting onto left leg — right leg lifting
-// Pose 5: Right leg passing through (midstance) — body HIGH, legs close
+// 6-pose walk cycle (one full stride):
+//   Pose 0: Right leg forward contact  — legs spread, body LOW
+//   Pose 1: Weight shifting onto right — left leg lifting
+//   Pose 2: Left swing through center  — body HIGH, legs close
+//   Pose 3: Left leg forward contact   — legs spread, body LOW (mirror of 0)
+//   Pose 4: Weight shifting onto left  — right leg lifting  (mirror of 1)
+//   Pose 5: Right swing through center — body HIGH, legs close (mirror of 2)
 export const WALK_POSES: Pose[] = [
-  // Pose 0: Right leg forward contact, body LOW
+  // ── Pose 0: Right leg forward contact, body LOW ──────────────────────────
   {
-    headY: -TORSO_HEIGHT - HEAD_RADIUS + 4,
-    hipY: 4, // body dips DOWN
-    rightUpperLeg: { x: 14, y: 22 },   // right knee forward
-    rightLowerLeg: { x: 20, y: 48 },   // right foot forward/down
-    leftUpperLeg:  { x: -10, y: 20 },  // left knee back
-    leftLowerLeg:  { x: -18, y: 42 },  // left foot back
-    // Arms: contralateral — left arm forward when right leg forward
-    leftUpperArm:  { x: -16, y: -22 }, // left arm swings forward
-    leftForearm:   { x: -22, y: -8 },  // elbow bent forward
-    rightUpperArm: { x: 14, y: -20 },  // right arm swings back
-    rightForearm:  { x: 10, y: -6 },   // elbow bent back
+    hipY: 3,
+    // Legs
+    rightUpperLeg: { x: 10,  y: 16 }, // knee forward-down  (len ≈ 19px)
+    rightLowerLeg: { x: 14,  y: 34 }, // foot forward        (knee→foot delta: 4,18 ≈ 18px)
+    leftUpperLeg:  { x: -8,  y: 14 }, // knee back           (len ≈ 16px)
+    leftLowerLeg:  { x: -12, y: 32 }, // foot back/lifting   (knee→foot delta: -4,18 ≈ 18px)
+    // Arms (contralateral: left arm forward when right leg forward)
+    leftUpperArm:  { x: -10, y: 12 }, // elbow forward       (len ≈ 16px)
+    leftForearm:   { x: -16, y: 24 }, // hand forward-down   (elbow→hand delta: -6,12 ≈ 13px)
+    rightUpperArm: { x: 10,  y: 14 }, // elbow back          (len ≈ 17px)
+    rightForearm:  { x: 8,   y: 28 }, // hand back-down      (elbow→hand delta: -2,14 ≈ 14px)
   },
-  // Pose 1: Weight shifting onto right leg — left leg lifting
+  // ── Pose 1: Weight shifting onto right leg, left leg lifting ─────────────
   {
-    headY: -TORSO_HEIGHT - HEAD_RADIUS + 2,
     hipY: 2,
-    rightUpperLeg: { x: 8, y: 24 },    // right leg bearing weight
-    rightLowerLeg: { x: 10, y: 50 },   // right foot planted
-    leftUpperLeg:  { x: -6, y: 18 },   // left leg lifting off
-    leftLowerLeg:  { x: -4, y: 32 },   // left foot lifting, knee bending
-    leftUpperArm:  { x: -10, y: -24 },
-    leftForearm:   { x: -14, y: -10 },
-    rightUpperArm: { x: 10, y: -22 },
-    rightForearm:  { x: 8, y: -10 },
+    rightUpperLeg: { x: 6,   y: 18 }, // planted, bearing weight
+    rightLowerLeg: { x: 8,   y: 36 }, // foot planted on ground
+    leftUpperLeg:  { x: -4,  y: 12 }, // lifting off
+    leftLowerLeg:  { x: -2,  y: 20 }, // knee bending, foot lifting
+    leftUpperArm:  { x: -8,  y: 14 },
+    leftForearm:   { x: -12, y: 26 },
+    rightUpperArm: { x: 8,   y: 12 },
+    rightForearm:  { x: 10,  y: 26 },
   },
-  // Pose 2: Left leg passing through midstance, body HIGH
+  // ── Pose 2: Left leg passes through (midstance), body HIGH ───────────────
   {
-    headY: -TORSO_HEIGHT - HEAD_RADIUS - 2,
-    hipY: -2, // body rises UP
-    rightUpperLeg: { x: 4, y: 26 },    // right (planted) leg nearly straight
-    rightLowerLeg: { x: 6, y: 52 },
-    leftUpperLeg:  { x: -2, y: 22 },   // swing leg passing through, knee bent high
-    leftLowerLeg:  { x: -8, y: 36 },   // knee bent noticeably
-    leftUpperArm:  { x: -4, y: -26 },
-    leftForearm:   { x: -8, y: -12 },
-    rightUpperArm: { x: 4, y: -24 },
-    rightForearm:  { x: 6, y: -12 },
-  },
-  // Pose 3: Left leg forward contact, body LOW (mirror of pose 0)
-  {
-    headY: -TORSO_HEIGHT - HEAD_RADIUS + 4,
-    hipY: 4,
-    leftUpperLeg:  { x: -14, y: 22 },
-    leftLowerLeg:  { x: -20, y: 48 },
-    rightUpperLeg: { x: 10, y: 20 },
-    rightLowerLeg: { x: 18, y: 42 },
-    // Arms: right arm forward when left leg forward
-    rightUpperArm: { x: 16, y: -22 },
-    rightForearm:  { x: 22, y: -8 },
-    leftUpperArm:  { x: -14, y: -20 },
-    leftForearm:   { x: -10, y: -6 },
-  },
-  // Pose 4: Weight shifting onto left leg (mirror of pose 1)
-  {
-    headY: -TORSO_HEIGHT - HEAD_RADIUS + 2,
-    hipY: 2,
-    leftUpperLeg:  { x: -8, y: 24 },
-    leftLowerLeg:  { x: -10, y: 50 },
-    rightUpperLeg: { x: 6, y: 18 },
-    rightLowerLeg: { x: 4, y: 32 },
-    rightUpperArm: { x: 10, y: -24 },
-    rightForearm:  { x: 14, y: -10 },
-    leftUpperArm:  { x: -10, y: -22 },
-    leftForearm:   { x: -8, y: -10 },
-  },
-  // Pose 5: Right leg passing through midstance, body HIGH (mirror of pose 2)
-  {
-    headY: -TORSO_HEIGHT - HEAD_RADIUS - 2,
     hipY: -2,
-    leftUpperLeg:  { x: -4, y: 26 },
-    leftLowerLeg:  { x: -6, y: 52 },
-    rightUpperLeg: { x: 2, y: 22 },
-    rightLowerLeg: { x: 8, y: 36 },
-    rightUpperArm: { x: 4, y: -26 },
-    rightForearm:  { x: 8, y: -12 },
-    leftUpperArm:  { x: -4, y: -24 },
-    leftForearm:   { x: -6, y: -12 },
+    rightUpperLeg: { x: 4,   y: 20 }, // planted leg, nearly straight
+    rightLowerLeg: { x: 5,   y: 38 }, // foot near ground
+    leftUpperLeg:  { x: -2,  y: 14 }, // swing leg, thigh vertical
+    leftLowerLeg:  { x: -6,  y: 24 }, // knee bent back noticeably
+    leftUpperArm:  { x: -4,  y: 14 },
+    leftForearm:   { x: -6,  y: 28 },
+    rightUpperArm: { x: 4,   y: 14 },
+    rightForearm:  { x: 6,   y: 28 },
+  },
+  // ── Pose 3: Left leg forward contact, body LOW (mirror of 0) ─────────────
+  {
+    hipY: 3,
+    leftUpperLeg:  { x: -10, y: 16 },
+    leftLowerLeg:  { x: -14, y: 34 },
+    rightUpperLeg: { x: 8,   y: 14 },
+    rightLowerLeg: { x: 12,  y: 32 },
+    rightUpperArm: { x: 10,  y: 12 }, // right arm forward
+    rightForearm:  { x: 16,  y: 24 },
+    leftUpperArm:  { x: -10, y: 14 }, // left arm back
+    leftForearm:   { x: -8,  y: 28 },
+  },
+  // ── Pose 4: Weight shifting onto left leg (mirror of 1) ──────────────────
+  {
+    hipY: 2,
+    leftUpperLeg:  { x: -6,  y: 18 },
+    leftLowerLeg:  { x: -8,  y: 36 },
+    rightUpperLeg: { x: 4,   y: 12 },
+    rightLowerLeg: { x: 2,   y: 20 },
+    rightUpperArm: { x: 8,   y: 14 },
+    rightForearm:  { x: 12,  y: 26 },
+    leftUpperArm:  { x: -8,  y: 12 },
+    leftForearm:   { x: -10, y: 26 },
+  },
+  // ── Pose 5: Right leg passes through (midstance), body HIGH (mirror of 2) ─
+  {
+    hipY: -2,
+    leftUpperLeg:  { x: -4,  y: 20 },
+    leftLowerLeg:  { x: -5,  y: 38 },
+    rightUpperLeg: { x: 2,   y: 14 },
+    rightLowerLeg: { x: 6,   y: 24 },
+    rightUpperArm: { x: 4,   y: 14 },
+    rightForearm:  { x: 6,   y: 28 },
+    leftUpperArm:  { x: -4,  y: 14 },
+    leftForearm:   { x: -6,  y: 28 },
   },
 ];
 
-// Sitting pose (cross-legged)
+// Cross-legged sitting pose
 export const SIT_POSE: Pose = {
-  headY: -TORSO_HEIGHT - HEAD_RADIUS + 2,
-  hipY: 8,
-  // Left leg: knee out-left, foot crosses to the right
-  leftUpperLeg:  { x: -22, y: 18 },
-  leftLowerLeg:  { x: 10, y: 28 },   // foot crosses under to right side
-  // Right leg: knee out-right, foot crosses to the left
-  rightUpperLeg: { x: 22, y: 18 },
-  rightLowerLeg: { x: -10, y: 28 },  // foot crosses under to left side
-  // Arms: elbows out, hands resting near knees
-  leftUpperArm:  { x: -18, y: -16 },
-  leftForearm:   { x: -24, y: -2 },
-  rightUpperArm: { x: 18, y: -16 },
-  rightForearm:  { x: 24, y: -2 },
+  hipY: 12,
+  // Left leg: knee out-left, foot crosses under to the right
+  leftUpperLeg:  { x: -20, y: 14 },
+  leftLowerLeg:  { x: 8,   y: 24 },
+  // Right leg: knee out-right, foot crosses under to the left
+  rightUpperLeg: { x: 20,  y: 14 },
+  rightLowerLeg: { x: -8,  y: 24 },
+  // Arms: elbows out to sides, hands resting near knees
+  leftUpperArm:  { x: -16, y: 14 },
+  leftForearm:   { x: -22, y: 26 },
+  rightUpperArm: { x: 16,  y: 14 },
+  rightForearm:  { x: 22,  y: 26 },
 };
 
-// Smoothstep easing
+// ─── Interpolation ────────────────────────────────────────────────────────────
+
 function smoothstep(t: number): number {
   const c = Math.max(0, Math.min(1, t));
   return c * c * (3 - 2 * c);
 }
 
-// Linear interpolation
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
-function lerpPoint(a: LimbEndpoint, b: LimbEndpoint, t: number): LimbEndpoint {
+function lerpPt(a: LimbEndpoint, b: LimbEndpoint, t: number): LimbEndpoint {
   return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t) };
 }
 
-// Interpolate between two poses
 export function interpolatePoses(a: Pose, b: Pose, rawT: number): Pose {
   const t = smoothstep(rawT);
   return {
-    headY: lerp(a.headY, b.headY, t),
-    hipY:  lerp(a.hipY, b.hipY, t),
-    leftUpperLeg:  lerpPoint(a.leftUpperLeg, b.leftUpperLeg, t),
-    leftLowerLeg:  lerpPoint(a.leftLowerLeg, b.leftLowerLeg, t),
-    rightUpperLeg: lerpPoint(a.rightUpperLeg, b.rightUpperLeg, t),
-    rightLowerLeg: lerpPoint(a.rightLowerLeg, b.rightLowerLeg, t),
-    leftUpperArm:  lerpPoint(a.leftUpperArm, b.leftUpperArm, t),
-    leftForearm:   lerpPoint(a.leftForearm, b.leftForearm, t),
-    rightUpperArm: lerpPoint(a.rightUpperArm, b.rightUpperArm, t),
-    rightForearm:  lerpPoint(a.rightForearm, b.rightForearm, t),
+    hipY:          lerp(a.hipY, b.hipY, t),
+    leftUpperLeg:  lerpPt(a.leftUpperLeg,  b.leftUpperLeg,  t),
+    leftLowerLeg:  lerpPt(a.leftLowerLeg,  b.leftLowerLeg,  t),
+    rightUpperLeg: lerpPt(a.rightUpperLeg, b.rightUpperLeg, t),
+    rightLowerLeg: lerpPt(a.rightLowerLeg, b.rightLowerLeg, t),
+    leftUpperArm:  lerpPt(a.leftUpperArm,  b.leftUpperArm,  t),
+    leftForearm:   lerpPt(a.leftForearm,   b.leftForearm,   t),
+    rightUpperArm: lerpPt(a.rightUpperArm, b.rightUpperArm, t),
+    rightForearm:  lerpPt(a.rightForearm,  b.rightForearm,  t),
   };
 }
 
-// Get interpolated walk pose for a cycle position t in [0, 1)
+// Walk cycle: t in [0, 1) maps to one full stride
 export function getWalkPose(cycleT: number): Pose {
-  const numPoses = WALK_POSES.length;
-  const scaled = ((cycleT % 1) + 1) % 1 * numPoses;
+  const n = WALK_POSES.length;
+  const scaled = ((cycleT % 1) + 1) % 1 * n;
   const i = Math.floor(scaled);
-  const frac = scaled - i;
-  const poseA = WALK_POSES[i % numPoses];
-  const poseB = WALK_POSES[(i + 1) % numPoses];
-  return interpolatePoses(poseA, poseB, frac);
+  return interpolatePoses(WALK_POSES[i % n], WALK_POSES[(i + 1) % n], scaled - i);
 }
 
-// Interpolate from a walk pose to the sit pose
+// Blend from end-of-walk pose into the sitting pose
 export function getTransitionPose(walkT: number, sitT: number): Pose {
-  const walkPose = getWalkPose(walkT);
-  return interpolatePoses(walkPose, SIT_POSE, sitT);
+  return interpolatePoses(getWalkPose(walkT), SIT_POSE, sitT);
 }

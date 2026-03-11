@@ -5,14 +5,23 @@ import { getWalkPose, getTransitionPose, SIT_POSE, type Pose } from '../data/wal
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Layout constants
+// ─── Layout constants ─────────────────────────────────────────────────────────
 const SVG_W = window.innerWidth;
 const SVG_H = window.innerHeight;
-const GROUND_Y = SVG_H * 0.72;  // stickman stands on this line
-const START_X = -60;
-const END_X = SVG_W * 0.65;
 
-// Scroll phase thresholds (fraction of total scroll)
+// Hip baseline: positioned so the stickman's visual centre lands at ~1/3 from top.
+// With TORSO=40, HEAD_R=10, feet ~36px below hip:
+//   head top  ≈ HIP_Y - 60
+//   feet bot  ≈ HIP_Y + 36
+//   centre    ≈ HIP_Y - 12  →  set HIP_Y = SVG_H/3 + 12
+const HIP_Y     = SVG_H * 0.35;          // hip reference (≈ centre at ~1/3 viewport)
+const FEET_Y    = HIP_Y + 36;            // nominal ground-line / foot level
+const TORSO_H   = 40;
+const HEAD_R    = 10;
+
+const START_X = -60;
+const END_X   = SVG_W * 0.65;
+
 const WALK_END = 0.45;
 const SIT_END  = 0.55;
 
@@ -21,98 +30,78 @@ interface StickmanProps {
 }
 
 export default function Stickman({ onGroundY }: StickmanProps) {
-  const groupRef    = useRef<SVGGElement>(null);
-  const headRef     = useRef<SVGCircleElement>(null);
-  const torsoRef    = useRef<SVGLineElement>(null);
-  const lulRef      = useRef<SVGLineElement>(null); // left upper leg
-  const lllRef      = useRef<SVGLineElement>(null); // left lower leg
-  const rulRef      = useRef<SVGLineElement>(null); // right upper leg
-  const rllRef      = useRef<SVGLineElement>(null); // right lower leg
-  const luaRef      = useRef<SVGLineElement>(null); // left upper arm
-  const lfaRef      = useRef<SVGLineElement>(null); // left forearm
-  const ruaRef      = useRef<SVGLineElement>(null); // right upper arm
-  const rfaRef      = useRef<SVGLineElement>(null); // right forearm
+  const headRef = useRef<SVGCircleElement>(null);
+  const torsoRef = useRef<SVGLineElement>(null);
+  const lulRef  = useRef<SVGLineElement>(null); // left upper leg
+  const lllRef  = useRef<SVGLineElement>(null); // left lower leg
+  const rulRef  = useRef<SVGLineElement>(null); // right upper leg
+  const rllRef  = useRef<SVGLineElement>(null); // right lower leg
+  const luaRef  = useRef<SVGLineElement>(null); // left upper arm
+  const lfaRef  = useRef<SVGLineElement>(null); // left forearm
+  const ruaRef  = useRef<SVGLineElement>(null); // right upper arm
+  const rfaRef  = useRef<SVGLineElement>(null); // right forearm
 
   useEffect(() => {
-    if (onGroundY) onGroundY(GROUND_Y);
+    // Tell App.tsx where to draw the ground line (foot level)
+    if (onGroundY) onGroundY(FEET_Y);
 
     const applyPose = (pose: Pose, cx: number) => {
-      const hipAbsY = GROUND_Y + pose.hipY;
-      const headAbsY = hipAbsY - 38 + pose.headY + 38; // headY is relative to hip
+      const hy = HIP_Y + pose.hipY;       // hip absolute Y
+      const sy = hy - TORSO_H;            // shoulder absolute Y (torso top)
+      const headCY = sy - HEAD_R;         // head centre: one radius above shoulder
 
-      // Hip center
-      const hx = cx;
-      const hy = hipAbsY;
-      // Shoulder center (torso top)
-      const sx = cx;
-      const sy = hy - 38;
+      headRef.current?.setAttribute('cx', String(cx));
+      headRef.current?.setAttribute('cy', String(headCY));
 
-      if (headRef.current) {
-        headRef.current.setAttribute('cx', String(cx));
-        headRef.current.setAttribute('cy', String(headAbsY));
-      }
-      if (torsoRef.current) {
-        torsoRef.current.setAttribute('x1', String(sx));
-        torsoRef.current.setAttribute('y1', String(sy));
-        torsoRef.current.setAttribute('x2', String(hx));
-        torsoRef.current.setAttribute('y2', String(hy));
-      }
-      // Legs from hip
-      if (lulRef.current) {
-        lulRef.current.setAttribute('x1', String(hx));
-        lulRef.current.setAttribute('y1', String(hy));
-        lulRef.current.setAttribute('x2', String(hx + pose.leftUpperLeg.x));
-        lulRef.current.setAttribute('y2', String(hy + pose.leftUpperLeg.y));
-      }
-      if (lllRef.current) {
-        lllRef.current.setAttribute('x1', String(hx + pose.leftUpperLeg.x));
-        lllRef.current.setAttribute('y1', String(hy + pose.leftUpperLeg.y));
-        lllRef.current.setAttribute('x2', String(hx + pose.leftLowerLeg.x));
-        lllRef.current.setAttribute('y2', String(hy + pose.leftLowerLeg.y));
-      }
-      if (rulRef.current) {
-        rulRef.current.setAttribute('x1', String(hx));
-        rulRef.current.setAttribute('y1', String(hy));
-        rulRef.current.setAttribute('x2', String(hx + pose.rightUpperLeg.x));
-        rulRef.current.setAttribute('y2', String(hy + pose.rightUpperLeg.y));
-      }
-      if (rllRef.current) {
-        rllRef.current.setAttribute('x1', String(hx + pose.rightUpperLeg.x));
-        rllRef.current.setAttribute('y1', String(hy + pose.rightUpperLeg.y));
-        rllRef.current.setAttribute('x2', String(hx + pose.rightLowerLeg.x));
-        rllRef.current.setAttribute('y2', String(hy + pose.rightLowerLeg.y));
-      }
-      // Arms from shoulder
-      if (luaRef.current) {
-        luaRef.current.setAttribute('x1', String(sx));
-        luaRef.current.setAttribute('y1', String(sy));
-        luaRef.current.setAttribute('x2', String(sx + pose.leftUpperArm.x));
-        luaRef.current.setAttribute('y2', String(sy + pose.leftUpperArm.y));
-      }
-      if (lfaRef.current) {
-        lfaRef.current.setAttribute('x1', String(sx + pose.leftUpperArm.x));
-        lfaRef.current.setAttribute('y1', String(sy + pose.leftUpperArm.y));
-        lfaRef.current.setAttribute('x2', String(sx + pose.leftForearm.x));
-        lfaRef.current.setAttribute('y2', String(sy + pose.leftForearm.y));
-      }
-      if (ruaRef.current) {
-        ruaRef.current.setAttribute('x1', String(sx));
-        ruaRef.current.setAttribute('y1', String(sy));
-        ruaRef.current.setAttribute('x2', String(sx + pose.rightUpperArm.x));
-        ruaRef.current.setAttribute('y2', String(sy + pose.rightUpperArm.y));
-      }
-      if (rfaRef.current) {
-        rfaRef.current.setAttribute('x1', String(sx + pose.rightUpperArm.x));
-        rfaRef.current.setAttribute('y1', String(sy + pose.rightUpperArm.y));
-        rfaRef.current.setAttribute('x2', String(sx + pose.rightForearm.x));
-        rfaRef.current.setAttribute('y2', String(sy + pose.rightForearm.y));
-      }
+      torsoRef.current?.setAttribute('x1', String(cx));
+      torsoRef.current?.setAttribute('y1', String(sy));
+      torsoRef.current?.setAttribute('x2', String(cx));
+      torsoRef.current?.setAttribute('y2', String(hy));
+
+      // Legs — endpoints relative to hip
+      lulRef.current?.setAttribute('x1', String(cx));
+      lulRef.current?.setAttribute('y1', String(hy));
+      lulRef.current?.setAttribute('x2', String(cx + pose.leftUpperLeg.x));
+      lulRef.current?.setAttribute('y2', String(hy + pose.leftUpperLeg.y));
+
+      lllRef.current?.setAttribute('x1', String(cx + pose.leftUpperLeg.x));
+      lllRef.current?.setAttribute('y1', String(hy + pose.leftUpperLeg.y));
+      lllRef.current?.setAttribute('x2', String(cx + pose.leftLowerLeg.x));
+      lllRef.current?.setAttribute('y2', String(hy + pose.leftLowerLeg.y));
+
+      rulRef.current?.setAttribute('x1', String(cx));
+      rulRef.current?.setAttribute('y1', String(hy));
+      rulRef.current?.setAttribute('x2', String(cx + pose.rightUpperLeg.x));
+      rulRef.current?.setAttribute('y2', String(hy + pose.rightUpperLeg.y));
+
+      rllRef.current?.setAttribute('x1', String(cx + pose.rightUpperLeg.x));
+      rllRef.current?.setAttribute('y1', String(hy + pose.rightUpperLeg.y));
+      rllRef.current?.setAttribute('x2', String(cx + pose.rightLowerLeg.x));
+      rllRef.current?.setAttribute('y2', String(hy + pose.rightLowerLeg.y));
+
+      // Arms — endpoints relative to shoulder
+      luaRef.current?.setAttribute('x1', String(cx));
+      luaRef.current?.setAttribute('y1', String(sy));
+      luaRef.current?.setAttribute('x2', String(cx + pose.leftUpperArm.x));
+      luaRef.current?.setAttribute('y2', String(sy + pose.leftUpperArm.y));
+
+      lfaRef.current?.setAttribute('x1', String(cx + pose.leftUpperArm.x));
+      lfaRef.current?.setAttribute('y1', String(sy + pose.leftUpperArm.y));
+      lfaRef.current?.setAttribute('x2', String(cx + pose.leftForearm.x));
+      lfaRef.current?.setAttribute('y2', String(sy + pose.leftForearm.y));
+
+      ruaRef.current?.setAttribute('x1', String(cx));
+      ruaRef.current?.setAttribute('y1', String(sy));
+      ruaRef.current?.setAttribute('x2', String(cx + pose.rightUpperArm.x));
+      ruaRef.current?.setAttribute('y2', String(sy + pose.rightUpperArm.y));
+
+      rfaRef.current?.setAttribute('x1', String(cx + pose.rightUpperArm.x));
+      rfaRef.current?.setAttribute('y1', String(sy + pose.rightUpperArm.y));
+      rfaRef.current?.setAttribute('x2', String(cx + pose.rightForearm.x));
+      rfaRef.current?.setAttribute('y2', String(sy + pose.rightForearm.y));
     };
 
-    // Initial pose
     applyPose(getWalkPose(0), START_X);
-
-    const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
 
     const trigger = ScrollTrigger.create({
       trigger: document.body,
@@ -123,21 +112,14 @@ export default function Stickman({ onGroundY }: StickmanProps) {
         const p = self.progress;
 
         if (p <= WALK_END) {
-          // Walking phase
-          const walkProgress = p / WALK_END; // 0→1
+          const walkProgress = p / WALK_END;
           const cx = START_X + (END_X - START_X) * walkProgress;
           const cycleT = (walkProgress * 10) % 1;
           applyPose(getWalkPose(cycleT), cx);
         } else if (p <= SIT_END) {
-          // Sitting transition phase
-          const sitProgress = (p - WALK_END) / (SIT_END - WALK_END); // 0→1
-          // Final walk cycle position
-          const lastCycleT = (1 * 10) % 1;
-          // Translate down slightly as sitting
-          const cx = END_X;
-          applyPose(getTransitionPose(lastCycleT, sitProgress), cx);
+          const sitProgress = (p - WALK_END) / (SIT_END - WALK_END);
+          applyPose(getTransitionPose(0, sitProgress), END_X);
         } else {
-          // Seated — hold sit pose
           applyPose(SIT_POSE, END_X);
         }
       },
@@ -146,77 +128,64 @@ export default function Stickman({ onGroundY }: StickmanProps) {
     return () => trigger.kill();
   }, [onGroundY]);
 
-  const strokeProps = {
-    stroke: '#2a2218',
-    strokeWidth: 2.5,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-  };
+  const sp = { stroke: '#2a2218', strokeWidth: 2.5, strokeLinecap: 'round' as const };
 
-  // Initial position — off screen left, standing
+  // Derive initial render values
   const initPose = getWalkPose(0);
-  const initHipY = GROUND_Y + initPose.hipY;
-  const initSy   = initHipY - 38;
-  const ix = START_X;
+  const initHY   = HIP_Y + initPose.hipY;
+  const initSY   = initHY - TORSO_H;
+  const ix       = START_X;
 
   return (
-    <g ref={groupRef}>
-      {/* Back limbs (rendered behind torso) */}
-      {/* Left upper leg */}
+    <g>
+      {/* ── Back limbs (behind torso) ──────────────────────────────────── */}
       <line ref={lulRef}
-        x1={ix} y1={initHipY}
-        x2={ix + initPose.leftUpperLeg.x} y2={initHipY + initPose.leftUpperLeg.y}
-        {...strokeProps} />
-      {/* Left lower leg */}
+        x1={ix} y1={initHY}
+        x2={ix + initPose.leftUpperLeg.x} y2={initHY + initPose.leftUpperLeg.y}
+        {...sp} />
       <line ref={lllRef}
-        x1={ix + initPose.leftUpperLeg.x} y1={initHipY + initPose.leftUpperLeg.y}
-        x2={ix + initPose.leftLowerLeg.x} y2={initHipY + initPose.leftLowerLeg.y}
-        {...strokeProps} />
-      {/* Left upper arm */}
+        x1={ix + initPose.leftUpperLeg.x} y1={initHY + initPose.leftUpperLeg.y}
+        x2={ix + initPose.leftLowerLeg.x} y2={initHY + initPose.leftLowerLeg.y}
+        {...sp} />
       <line ref={luaRef}
-        x1={ix} y1={initSy}
-        x2={ix + initPose.leftUpperArm.x} y2={initSy + initPose.leftUpperArm.y}
-        {...strokeProps} />
-      {/* Left forearm */}
+        x1={ix} y1={initSY}
+        x2={ix + initPose.leftUpperArm.x} y2={initSY + initPose.leftUpperArm.y}
+        {...sp} />
       <line ref={lfaRef}
-        x1={ix + initPose.leftUpperArm.x} y1={initSy + initPose.leftUpperArm.y}
-        x2={ix + initPose.leftForearm.x} y2={initSy + initPose.leftForearm.y}
-        {...strokeProps} />
+        x1={ix + initPose.leftUpperArm.x} y1={initSY + initPose.leftUpperArm.y}
+        x2={ix + initPose.leftForearm.x}  y2={initSY + initPose.leftForearm.y}
+        {...sp} />
 
-      {/* Torso */}
+      {/* ── Torso ─────────────────────────────────────────────────────── */}
       <line ref={torsoRef}
-        x1={ix} y1={initSy}
-        x2={ix} y2={initHipY}
-        {...strokeProps} />
+        x1={ix} y1={initSY}
+        x2={ix} y2={initHY}
+        {...sp} />
 
-      {/* Head */}
+      {/* ── Head ──────────────────────────────────────────────────────── */}
       <circle ref={headRef}
-        cx={ix} cy={initSy - 12}
-        r={12}
+        cx={ix} cy={initSY - HEAD_R}
+        r={HEAD_R}
         fill="none"
-        {...strokeProps} />
+        {...sp} />
 
-      {/* Front limbs */}
-      {/* Right upper leg */}
+      {/* ── Front limbs (in front of torso) ───────────────────────────── */}
       <line ref={rulRef}
-        x1={ix} y1={initHipY}
-        x2={ix + initPose.rightUpperLeg.x} y2={initHipY + initPose.rightUpperLeg.y}
-        {...strokeProps} />
-      {/* Right lower leg */}
+        x1={ix} y1={initHY}
+        x2={ix + initPose.rightUpperLeg.x} y2={initHY + initPose.rightUpperLeg.y}
+        {...sp} />
       <line ref={rllRef}
-        x1={ix + initPose.rightUpperLeg.x} y1={initHipY + initPose.rightUpperLeg.y}
-        x2={ix + initPose.rightLowerLeg.x} y2={initHipY + initPose.rightLowerLeg.y}
-        {...strokeProps} />
-      {/* Right upper arm */}
+        x1={ix + initPose.rightUpperLeg.x} y1={initHY + initPose.rightUpperLeg.y}
+        x2={ix + initPose.rightLowerLeg.x} y2={initHY + initPose.rightLowerLeg.y}
+        {...sp} />
       <line ref={ruaRef}
-        x1={ix} y1={initSy}
-        x2={ix + initPose.rightUpperArm.x} y2={initSy + initPose.rightUpperArm.y}
-        {...strokeProps} />
-      {/* Right forearm */}
+        x1={ix} y1={initSY}
+        x2={ix + initPose.rightUpperArm.x} y2={initSY + initPose.rightUpperArm.y}
+        {...sp} />
       <line ref={rfaRef}
-        x1={ix + initPose.rightUpperArm.x} y1={initSy + initPose.rightUpperArm.y}
-        x2={ix + initPose.rightForearm.x} y2={initSy + initPose.rightForearm.y}
-        {...strokeProps} />
+        x1={ix + initPose.rightUpperArm.x} y1={initSY + initPose.rightUpperArm.y}
+        x2={ix + initPose.rightForearm.x}  y2={initSY + initPose.rightForearm.y}
+        {...sp} />
     </g>
   );
 }
