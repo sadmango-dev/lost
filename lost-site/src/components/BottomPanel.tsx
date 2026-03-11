@@ -28,7 +28,6 @@ const SECTIONS = [
 export default function BottomPanel() {
   const innerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const dividerRef = useRef<HTMLDivElement>(null);
 
   // Visibility values for each section (0–1), driven by scroll
   const [sectionVisibilities, setSectionVisibilities] = useState([0, 0, 0]);
@@ -53,9 +52,9 @@ export default function BottomPanel() {
       onUpdate: (self) => {
         const p = self.progress;
 
-        // Panel fades in during sit transition (SIT_END-0.05 → SIT_END)
+        // Panel fades in gently: starts at sit_start (0.50) → fully visible at SIT_END+0.10
         const fadeStart = SIT_END - 0.05;
-        const fadeProgress = Math.max(0, Math.min(1, (p - fadeStart) / 0.05));
+        const fadeProgress = Math.max(0, Math.min(1, (p - fadeStart) / 0.15));
         setPanelOpacity(fadeProgress);
 
         if (p > SIT_END) {
@@ -93,13 +92,6 @@ export default function BottomPanel() {
 
   return (
     <>
-      {/* Horizontal divider */}
-      <div
-        ref={dividerRef}
-        className="split-divider"
-        style={{ opacity: panelOpacity * 0.3 }}
-      />
-
       {/* Bottom panel */}
       <div
         ref={panelRef}

@@ -84,17 +84,23 @@
 }
 
 /* ============================================================
-   Split divider
+   Walk-phase labels
    ============================================================ */
-.split-divider {
+.walk-label {
   position: fixed;
-  top: 50vh;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--color-divider);
+  top: 52%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-weight: 300;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
   pointer-events: none;
-  z-index: 12;
+  user-select: none;
+  z-index: 15;
+  white-space: nowrap;
 }
 
 /* ============================================================
@@ -109,6 +115,8 @@
   overflow: hidden;
   z-index: 11;
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 18%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 18%);
 }
 
 .bottom-panel-inner {

@@ -7,9 +7,24 @@ import './App.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Walk-phase labels: [text, fadeInStart, peakStart, peakEnd, fadeOutEnd]
+const WALK_LABELS: [string, number, number, number, number][] = [
+  ['Walking',       0.02, 0.05, 0.12, 0.15],
+  ['Still Walking', 0.17, 0.20, 0.27, 0.30],
+  ['Still walking', 0.32, 0.35, 0.42, 0.45],
+];
+
+function labelOpacity(p: number, fadeIn: number, peakStart: number, peakEnd: number, fadeOut: number): number {
+  if (p <= fadeIn || p >= fadeOut) return 0;
+  if (p <= peakStart) return (p - fadeIn) / (peakStart - fadeIn);
+  if (p >= peakEnd)   return 1 - (p - peakEnd) / (fadeOut - peakEnd);
+  return 1;
+}
+
 export default function App() {
   const titleRef      = useRef<HTMLDivElement>(null);
   const scrollHintRef = useRef<HTMLDivElement>(null);
+  const walkLabelRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [groundY, setGroundY] = useState(window.innerHeight * 0.72);
 
   useEffect(() => {
@@ -31,23 +46,35 @@ export default function App() {
     const hintTrigger = ScrollTrigger.create({
       trigger: document.body,
       start: '10px top',
-      onEnter: () => {
+      end: `${window.innerHeight * 0.03 * 6}px top`,
+      scrub: true,
+      onUpdate: (self) => {
         if (scrollHintRef.current) {
-          scrollHintRef.current.style.opacity = '0';
-          scrollHintRef.current.style.pointerEvents = 'none';
+          const opacity = Math.max(0, 1 - self.progress * 2);
+          scrollHintRef.current.style.opacity = String(opacity);
         }
-      },
-      onLeaveBack: () => {
-        if (scrollHintRef.current) {
-          scrollHintRef.current.style.opacity = '1';
-          scrollHintRef.current.style.pointerEvents = 'auto';
-        }
+      }
+    });
+
+    // Walk labels fade in/out during the walking phase
+    const walkTrigger = ScrollTrigger.create({
+      trigger: document.body,
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: true,
+      onUpdate: (self) => {
+        const p = self.progress;
+        WALK_LABELS.forEach(([, fadeIn, peakStart, peakEnd, fadeOut], i) => {
+          const el = walkLabelRefs.current[i];
+          if (el) el.style.opacity = String(labelOpacity(p, fadeIn, peakStart, peakEnd, fadeOut));
+        });
       },
     });
 
     return () => {
       titleTrigger.kill();
       hintTrigger.kill();
+      walkTrigger.kill();
     };
   }, []);
 
@@ -96,6 +123,18 @@ export default function App() {
       <div ref={scrollHintRef} className="scroll-hint">
         scroll to begin
       </div>
+
+      {/* Walk-phase labels */}
+      {WALK_LABELS.map(([text], i) => (
+        <div
+          key={text}
+          ref={el => { walkLabelRefs.current[i] = el; }}
+          className="walk-label"
+          style={{ opacity: 0 }}
+        >
+          {text}
+        </div>
+      ))}
 
       {/* Split-screen bottom panel (always in DOM) */}
       <BottomPanel />
