@@ -26,37 +26,36 @@ export default function Sky({ groundY }: SkyProps) {
     const rand = makePRNG(42);
     const items: React.ReactElement[] = [];
 
-    // ── Soft ambient rings (orb feel) ────────────────────────────────────
+    // ── Soft ambient rings ───────────────────────────────────────────────
     for (let i = 0; i < 14; i++) {
       const cx = rand() * W;
       const cy = rand() * groundY;
       const r  = 4 + rand() * 18;
-      const op = 0.04 + rand() * 0.09;
+      const op = 0.10 + rand() * 0.18;
       items.push(
         <circle key={`ring${i}`} cx={cx} cy={cy} r={r}
-          fill="none" stroke={CIRCLE_STROKE} strokeWidth={0.7} opacity={op} />
+          fill="none" stroke={CIRCLE_STROKE} strokeWidth={0.9} opacity={op} />
       );
     }
 
-    // ── Micro dots ───────────────────────────────────────────────────────
+    // ── Dots ─────────────────────────────────────────────────────────────
     for (let i = 0; i < 30; i++) {
       const cx = rand() * W;
       const cy = rand() * groundY;
-      const r  = 0.6 + rand() * 1.8;
-      const op = 0.07 + rand() * 0.13;
+      const r  = 0.8 + rand() * 2;
+      const op = 0.18 + rand() * 0.22;
       items.push(
         <circle key={`dot${i}`} cx={cx} cy={cy} r={r}
           fill={DOT_FILL} opacity={op} />
       );
     }
 
-    // ── Spark marks (two crossing lines = ✦ shape) ───────────────────────
+    // ── Spark marks (✦ shape) ────────────────────────────────────────────
     for (let i = 0; i < 32; i++) {
-      const cx   = rand() * W;
-      const cy   = rand() * groundY;
-      const size = 1.8 + rand() * 5;
-      const op   = 0.06 + rand() * 0.14;
-      // Slight random rotation so sparks don't all look identical
+      const cx    = rand() * W;
+      const cy    = rand() * groundY;
+      const size  = 2 + rand() * 5.5;
+      const op    = 0.14 + rand() * 0.20;
       const angle = rand() * Math.PI * 0.5;
       const cos   = Math.cos(angle);
       const sin   = Math.sin(angle);
@@ -65,12 +64,12 @@ export default function Sky({ groundY }: SkyProps) {
           <line
             x1={cx - cos * size} y1={cy - sin * size}
             x2={cx + cos * size} y2={cy + sin * size}
-            stroke={SPARK_STROKE} strokeWidth={0.65} strokeLinecap="round"
+            stroke={SPARK_STROKE} strokeWidth={0.9} strokeLinecap="round"
           />
           <line
             x1={cx + sin * size} y1={cy - cos * size}
             x2={cx - sin * size} y2={cy + cos * size}
-            stroke={SPARK_STROKE} strokeWidth={0.65} strokeLinecap="round"
+            stroke={SPARK_STROKE} strokeWidth={0.9} strokeLinecap="round"
           />
         </g>
       );
