@@ -112,20 +112,24 @@ export const WALK_POSES: Pose[] = [
   },
 ];
 
-// Cross-legged sitting pose
+// Cross-legged yoga pose — hands land precisely on knees.
+//
+// Geometry (TORSO_H=40):
+//   shoulder abs Y = HIP_Y + hipY - 40  = HIP_Y - 20   (hipY=20)
+//   left knee abs  = (cx-18, HIP_Y+20)                  (leftUpperLeg y=0)
+//   left hand abs  = (cx-18, HIP_Y-20+38) = (cx-18, HIP_Y+18) ← 2px above knee ✓
 export const SIT_POSE: Pose = {
-  hipY: 12,
-  // Left leg: knee out-left, foot crosses under to the right
-  leftUpperLeg:  { x: -20, y: 14 },
-  leftLowerLeg:  { x: 8,   y: 24 },
-  // Right leg: knee out-right, foot crosses under to the left
-  rightUpperLeg: { x: 20,  y: 14 },
-  rightLowerLeg: { x: -8,  y: 24 },
-  // Arms: elbows out to sides, hands resting near knees
-  leftUpperArm:  { x: -16, y: 14 },
-  leftForearm:   { x: -22, y: 26 },
-  rightUpperArm: { x: 16,  y: 14 },
-  rightForearm:  { x: 22,  y: 26 },
+  hipY: 20,
+  // Thighs spread wide to the sides at hip level (y=0 = same height as hip)
+  leftUpperLeg:  { x: -18, y:  0 },   // knee directly left
+  leftLowerLeg:  { x:  -4, y: 14 },   // shin crosses inward; foot near ground
+  rightUpperLeg: { x:  18, y:  0 },   // knee directly right
+  rightLowerLeg: { x:   4, y: 14 },   // shin crosses inward
+  // Arms reach steeply down-outward so hands land on knees
+  leftUpperArm:  { x: -12, y: 22 },
+  leftForearm:   { x: -18, y: 38 },   // hand at left knee ✓
+  rightUpperArm: { x:  12, y: 22 },
+  rightForearm:  { x:  18, y: 38 },   // hand at right knee ✓
 };
 
 // ─── Interpolation ────────────────────────────────────────────────────────────

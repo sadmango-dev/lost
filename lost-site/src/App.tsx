@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Stickman from './components/Stickman';
+import Sky from './components/Sky';
 import BottomPanel from './components/BottomPanel';
 import './App.css';
 
@@ -9,9 +10,9 @@ gsap.registerPlugin(ScrollTrigger);
 
 // Walk-phase labels: [text, fadeInStart, peakStart, peakEnd, fadeOutEnd]
 const WALK_LABELS: [string, number, number, number, number][] = [
-  ['Walking',       0.02, 0.05, 0.12, 0.15],
-  ['Still Walking', 0.17, 0.20, 0.27, 0.30],
-  ['Still walking', 0.32, 0.35, 0.42, 0.45],
+  ['How did we end up here?',       0.02, 0.05, 0.12, 0.15],
+  ['Where is the way out?', 0.17, 0.20, 0.27, 0.30],
+  ["I don't see a future for myself", 0.32, 0.35, 0.42, 0.45],
 ];
 
 function labelOpacity(p: number, fadeIn: number, peakStart: number, peakEnd: number, fadeOut: number): number {
@@ -90,6 +91,7 @@ export default function App() {
         height={window.innerHeight}
         viewBox={`0 0 ${window.innerWidth} ${window.innerHeight}`}
       >
+        <Sky groundY={groundY} />
         {/* Ground line */}
         <line
           x1={0}
@@ -116,7 +118,7 @@ export default function App() {
 
       {/* Title */}
       <div ref={titleRef} className="site-title">
-        the wanderer
+        what a mess we're in
       </div>
 
       {/* Scroll hint */}
