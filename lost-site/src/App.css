@@ -108,10 +108,10 @@
    ============================================================ */
 .bottom-panel {
   position: fixed;
-  top: 50vh;
+  top: 46vh;
   left: 0;
   right: 0;
-  height: 50vh;
+  height: 45vh;
   overflow: hidden;
   z-index: 11;
   pointer-events: none;

@@ -7,11 +7,11 @@ gsap.registerPlugin(ScrollTrigger);
 const SIT_END = 0.55;
 
 const PARAGRAPHS = [
-  'There is a particular kind of exhaustion that has nothing to do with sleep. You carry it in the chest, somewhere just below the ribs. It is the weight of questions that have no clean answers.',
-  'Nobody tells you that some stretches of life feel like walking through fog — not darkness, not light. Just grey. And you keep walking because what else is there.',
-  'The strange thing is that most people around you are carrying the same fog. They just got better at hiding it. The ones who seem certain are usually the most lost.',
-  'Somewhere along the way you started measuring yourself against a version of your life that only ever existed in your head. That version is a fiction. Let it go.',
-  'Rest is not failure. Sitting down is not giving up. Sometimes the most honest thing you can do is stop pretending you are fine and just be exactly where you are.',
+  'We are in a period of change. The old ways of doing things are breaking down, but the new ways haven’t formed or taken shape yet. The future is covered by fog, the present by anxiety.',
+  "I'm scared too. But water doesn't flow under a lying rock. If only out of pettiness, we should continue. Continue walking, loving, creating. I haven't figured things out myself, but here's what I think is a promising direction.",
+  '1. Preserve you sanity. The attention economy is grasping for your attention, it is throwing too much information at you all at the same time. Step away. Be bored. Give back to the universe - bring your ideas to life.',
+  '2. Connect with people. Love is a force people have examined since the dawn of humanity for a reason. Love your friends, love your community, love the strangers on the street.',
+  '3. Go back to the physical world. In a society where everything is rent-based and temporary, where ownership is being erased, the physical world is the last bastion of permanence. Plant a tree, build something, learn to create.',
 ];
 
 const SECTION_H = () => window.innerHeight * 0.5;
@@ -39,8 +39,24 @@ export default function BottomPanel() {
 
         if (p > SIT_END) {
           const contentProgress = (p - SIT_END) / (1 - SIT_END);
+
+          const SCROLL_IN = 0.05;
+          const HOLD_END  = 0.4; 
+
+          let scrollProgress: number;
+          if (contentProgress <= SCROLL_IN) {
+            // Phase 1: scroll in normally
+            scrollProgress = contentProgress / SCROLL_IN * SCROLL_IN;
+          } else if (contentProgress <= HOLD_END) {
+            // Phase 2: freeze
+            scrollProgress = SCROLL_IN;
+          } else {
+            // Phase 3: resume scrolling from where it froze
+            scrollProgress = SCROLL_IN + (contentProgress - HOLD_END) / (1 - HOLD_END) * (1 - SCROLL_IN);
+          }
+
           const maxOffset = SECTION_H() * PARAGRAPHS.length;
-          const offsetY = -(contentProgress * maxOffset);
+          const offsetY = -(scrollProgress * maxOffset);
           inner.style.transform = `translateY(${offsetY}px)`;
 
           // Paragraph sections (index 1+) fade in as they enter the panel
