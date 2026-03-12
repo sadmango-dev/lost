@@ -125,54 +125,38 @@
 }
 
 /* ============================================================
-   Content sections
+   "I get it" statement
    ============================================================ */
-.content-section {
+.igetit-section {
   min-height: 50vh;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding: 3rem 2rem;
-  text-align: center;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.section-label {
-  font-family: 'DM Mono', 'Courier New', monospace;
-  font-weight: 300;
-  font-size: 0.6rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--color-gold);
-  margin-bottom: 1.4rem;
-}
-
-.section-heading {
+  justify-content: center;
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-weight: 300;
-  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  font-size: clamp(2.2rem, 6vw, 4.5rem);
+  letter-spacing: 0.06em;
   color: var(--color-ink);
-  line-height: 1.2;
-  letter-spacing: 0.02em;
-  margin-bottom: 1.2rem;
 }
 
-.section-divider-gold {
-  width: 40px;
-  height: 1px;
-  background: var(--color-gold);
-  opacity: 0.35;
-  margin: 0 auto 1.4rem;
+/* ============================================================
+   Paragraph sections
+   ============================================================ */
+.para-section {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
 }
 
-.section-body {
+.para-body {
   font-family: 'DM Mono', 'Courier New', monospace;
   font-weight: 300;
-  font-size: 0.75rem;
-  line-height: 1.9;
+  font-size: 0.78rem;
+  line-height: 2;
   color: var(--color-ink-muted);
-  max-width: 480px;
+  max-width: 460px;
+  text-align: center;
   letter-spacing: 0.02em;
 }

@@ -1,48 +1,30 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import ContentSection from './ContentSection';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const SIT_END = 0.55; // scroll fraction at which split-screen fully appears
+const SIT_END = 0.55;
 
-const SECTIONS = [
-  {
-    label: '01 — stillness',
-    heading: 'In stillness, the world speaks',
-    body: 'After miles of movement, the body learns to quiet itself. The feet stop, the breath deepens, and something that was always present — beneath the noise of motion — begins to surface. Stillness is not the absence of life. It is life, unmasked.',
-  },
-  {
-    label: '02 — reflection',
-    heading: 'The path behind becomes the path within',
-    body: 'Every step taken outward is also a step taken inward. The road teaches patience. It teaches you that arrival is not a destination but a way of moving — and that what you carry matters less than what you are willing to set down.',
-  },
-  {
-    label: '03 — continuation',
-    heading: 'Rest is not the opposite of movement',
-    body: 'The wanderer will rise again. Not because rest has ended, but because rest has done its work. To sit is to gather. To be still is to prepare. The road continues not despite the pause, but because of it.',
-  },
+const PARAGRAPHS = [
+  'There is a particular kind of exhaustion that has nothing to do with sleep. You carry it in the chest, somewhere just below the ribs. It is the weight of questions that have no clean answers.',
+  'Nobody tells you that some stretches of life feel like walking through fog — not darkness, not light. Just grey. And you keep walking because what else is there.',
+  'The strange thing is that most people around you are carrying the same fog. They just got better at hiding it. The ones who seem certain are usually the most lost.',
+  'Somewhere along the way you started measuring yourself against a version of your life that only ever existed in your head. That version is a fiction. Let it go.',
+  'Rest is not failure. Sitting down is not giving up. Sometimes the most honest thing you can do is stop pretending you are fine and just be exactly where you are.',
 ];
 
-export default function BottomPanel() {
-  const innerRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
+const SECTION_H = () => window.innerHeight * 0.5;
 
-  // Visibility values for each section (0–1), driven by scroll
-  const [sectionVisibilities, setSectionVisibilities] = useState([0, 0, 0]);
-  const [panelOpacity, setPanelOpacity] = useState(0);
+export default function BottomPanel() {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const paraRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
-    const inner = innerRef.current;
     const panel = panelRef.current;
-    if (!inner || !panel) return;
-
-    // Total translateY range: scroll all 3 sections through 50vh panel
-    // Each section is min-height 50vh, so total inner height ≈ 3 * 50vh
-    // We want to scroll (3-1) * 50vh = 100vh of content through the panel
-    const getSectionHeight = () => window.innerHeight * 0.5;
-    const getTotalOffset = () => getSectionHeight() * (SECTIONS.length - 1);
+    const inner = innerRef.current;
+    if (!panel || !inner) return;
 
     const trigger = ScrollTrigger.create({
       trigger: document.body,
@@ -52,37 +34,34 @@ export default function BottomPanel() {
       onUpdate: (self) => {
         const p = self.progress;
 
-        // Panel fades in gently: starts at sit_start (0.50) → fully visible at SIT_END+0.10
-        const fadeStart = SIT_END - 0.05;
-        const fadeProgress = Math.max(0, Math.min(1, (p - fadeStart) / 0.15));
-        setPanelOpacity(fadeProgress);
+        // Panel snaps in the moment the stickman finishes sitting
+        panel.style.opacity = p >= SIT_END ? '1' : '0';
 
         if (p > SIT_END) {
-          // Content scroll phase: SIT_END → 1.0
-          const contentProgress = (p - SIT_END) / (1 - SIT_END); // 0→1
-          const maxOffset = getTotalOffset();
+          const contentProgress = (p - SIT_END) / (1 - SIT_END);
+          const maxOffset = SECTION_H() * PARAGRAPHS.length;
           const offsetY = -(contentProgress * maxOffset);
-          if (inner) {
-            inner.style.transform = `translateY(${offsetY}px)`;
-          }
+          inner.style.transform = `translateY(${offsetY}px)`;
 
-          // Calculate visibility of each section
-          const panelH = getSectionHeight();
-          const newVis = SECTIONS.map((_, i) => {
-            // Section top in inner container coords
-            const sectionTop = i * panelH;
-            // In viewport (panel) coords: sectionTop + offsetY
+          // Paragraph sections (index 1+) fade in as they enter the panel
+          paraRefs.current.forEach((el, i) => {
+            if (!el || i === 0) return; // skip "I get it" (always full opacity)
+            const sectionTop = i * SECTION_H();
             const visibleTop = sectionTop + offsetY;
-            // Section is entering from bottom of panel (panelH) upward
-            // Fully visible when visibleTop < panelH * 0.6
-            const enterStart = panelH * 0.85;
-            const enterEnd   = panelH * 0.35;
-            return Math.max(0, Math.min(1, (enterStart - visibleTop) / (enterStart - enterEnd)));
+            const enterStart = SECTION_H() * 0.88;
+            const enterEnd   = SECTION_H() * 0.28;
+            const v = Math.max(0, Math.min(1, (enterStart - visibleTop) / (enterStart - enterEnd)));
+            el.style.opacity      = String(v);
+            el.style.transform    = `translateY(${(1 - v) * 22}px)`;
           });
-          setSectionVisibilities(newVis);
         } else {
-          if (inner) inner.style.transform = 'translateY(0px)';
-          setSectionVisibilities([0, 0, 0]);
+          inner.style.transform = 'translateY(0px)';
+          // Reset paragraphs when user scrolls back up
+          paraRefs.current.forEach((el, i) => {
+            if (!el || i === 0) return;
+            el.style.opacity   = '0';
+            el.style.transform = 'translateY(22px)';
+          });
         }
       },
     });
@@ -91,29 +70,30 @@ export default function BottomPanel() {
   }, []);
 
   return (
-    <>
-      {/* Bottom panel */}
-      <div
-        ref={panelRef}
-        className="bottom-panel"
-        style={{ opacity: panelOpacity }}
-      >
+    <div ref={panelRef} className="bottom-panel" style={{ opacity: 0 }}>
+      <div ref={innerRef} className="bottom-panel-inner" style={{ willChange: 'transform' }}>
+
+        {/* "I get it" — no fade, appears with the panel */}
         <div
-          ref={innerRef}
-          className="bottom-panel-inner"
-          style={{ willChange: 'transform' }}
+          ref={el => { paraRefs.current[0] = el; }}
+          className="igetit-section"
         >
-          {SECTIONS.map((section, i) => (
-            <ContentSection
-              key={section.label}
-              label={section.label}
-              heading={section.heading}
-              body={section.body}
-              visibility={sectionVisibilities[i]}
-            />
-          ))}
+          I get it.
         </div>
+
+        {/* Paragraphs — scroll in one by one */}
+        {PARAGRAPHS.map((text, i) => (
+          <div
+            key={i}
+            ref={el => { paraRefs.current[i + 1] = el; }}
+            className="para-section"
+            style={{ opacity: 0, transform: 'translateY(22px)' }}
+          >
+            <p className="para-body">{text}</p>
+          </div>
+        ))}
+
       </div>
-    </>
+    </div>
   );
 }
