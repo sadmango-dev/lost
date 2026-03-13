@@ -6,6 +6,14 @@ gsap.registerPlugin(ScrollTrigger);
 
 const SIT_END = 0.55;
 
+const LINKS = [
+  { label: 'The Marginalian',   href: 'https://www.themarginalian.org' },
+  { label: 'Colossal',          href: 'https://www.thisiscolossal.com' },
+  { label: 'Brainpickings',     href: 'https://www.themarginalian.org/archive' },
+  { label: 'Quiet Mind',        href: 'https://www.headspace.com' },
+  { label: 'Slow TV',           href: 'https://www.youtube.com/@NorwegianBroadcastingCorporation' },
+];
+
 const PARAGRAPHS = [
   'We are in a period of change. The old ways of doing things are breaking down, but the new ways haven’t formed or taken shape yet. The future is covered by fog, the present by anxiety.',
   "I'm scared too. But water doesn't flow under a lying rock. If only out of pettiness, we should continue. Continue walking, loving, creating. I haven't figured things out myself, but here's what I think is a promising direction.",
@@ -55,7 +63,7 @@ export default function BottomPanel() {
             scrollProgress = SCROLL_IN + (contentProgress - HOLD_END) / (1 - HOLD_END) * (1 - SCROLL_IN);
           }
 
-          const maxOffset = SECTION_H() * PARAGRAPHS.length;
+          const maxOffset = SECTION_H() * (PARAGRAPHS.length);
           const offsetY = -(scrollProgress * maxOffset);
           inner.style.transform = `translateY(${offsetY}px)`;
 
