@@ -11,8 +11,8 @@ gsap.registerPlugin(ScrollTrigger);
 // Walk-phase labels: [text, fadeInStart, peakStart, peakEnd, fadeOutEnd]
 const WALK_LABELS: [string, number, number, number, number][] = [
   ['How did we end up here?',       0.02, 0.05, 0.12, 0.15],
-  ['Where is the way out?', 0.17, 0.20, 0.27, 0.30],
-  ["I don't see a future for myself", 0.32, 0.35, 0.42, 0.45],
+  ["I don't want to be eaten by the AI...", 0.17, 0.20, 0.27, 0.30],
+  ["Ugh, I don't see a future for myself", 0.32, 0.35, 0.42, 0.45],
 ];
 
 function labelOpacity(p: number, fadeIn: number, peakStart: number, peakEnd: number, fadeOut: number): number {
@@ -24,6 +24,7 @@ function labelOpacity(p: number, fadeIn: number, peakStart: number, peakEnd: num
 
 export default function App() {
   const titleRef      = useRef<HTMLDivElement>(null);
+  const subtitleRef   = useRef<HTMLDivElement>(null);
   const scrollHintRef = useRef<HTMLDivElement>(null);
   const walkLabelRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [groundY, setGroundY] = useState(window.innerHeight * 0.72);
@@ -37,9 +38,28 @@ export default function App() {
       scrub: true,
       onUpdate: (self) => {
         if (titleRef.current) {
-          const opacity = Math.max(0, 0.08 * (1 - self.progress));
+          const opacity = Math.max(0, 0.25 * (1 - self.progress));
           titleRef.current.style.opacity = String(opacity);
         }
+      },
+      onLeaveBack: () => {
+        if (titleRef.current) titleRef.current.style.opacity = '0.25';
+      },
+    });
+
+    const subtitleTrigger = ScrollTrigger.create({
+      trigger: document.body,
+      start: 'top top',
+      end: `${window.innerHeight * 0.08 * 6}px top`,
+      scrub: true,
+      onUpdate: (self) => {
+        if (subtitleRef.current) {
+          const opacity = Math.max(0, 0.18 * (1 - self.progress));
+          subtitleRef.current.style.opacity = String(opacity);
+        }
+      },
+      onLeaveBack: () => {
+        if (subtitleRef.current) subtitleRef.current.style.opacity = '0.18';
       },
     });
 
@@ -74,6 +94,7 @@ export default function App() {
 
     return () => {
       titleTrigger.kill();
+      subtitleTrigger.kill();
       hintTrigger.kill();
       walkTrigger.kill();
     };
@@ -119,6 +140,9 @@ export default function App() {
       {/* Title */}
       <div ref={titleRef} className="site-title">
         what a mess we're in
+      </div>
+      <div ref={subtitleRef} className="site-subtitle">
+        (AI addition)
       </div>
 
       {/* Scroll hint */}

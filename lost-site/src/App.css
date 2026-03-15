@@ -48,13 +48,30 @@
   font-weight: 300;
   font-size: clamp(3rem, 8vw, 7rem);
   color: var(--color-ink);
-  opacity: 0.08;
+  opacity: 0.25;
   letter-spacing: 0.08em;
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
   z-index: 15;
   transition: opacity 0.1s linear;
+}
+
+.site-subtitle {
+  position: fixed;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(0.9rem, 3vw, 2rem);
+  color: var(--color-ink-muted);
+  opacity: 0.18;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 15;
 }
 
 /* ============================================================
@@ -145,9 +162,21 @@
 .para-section {
   min-height: 50vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2rem;
+}
+
+.para-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  letter-spacing: 0.06em;
+  color: var(--color-ink);
+  max-width: 460px;
+  text-align: center;
+  margin-bottom: 0.8rem;
 }
 
 .para-body {
