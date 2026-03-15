@@ -23,11 +23,11 @@ const PARAGRAPHS: { title?: string; body: string }[] = [
   },
   {
     title: '1. Preserve your sanity.',
-    body: "The attention economy is grasping for our attention, throwing too much information at us all at once. Step away. Don't let your nerves get hijacked. Be bored. Give back to the universe — bring your ideas to life.",
+    body: "The attention economy is grasping for the most vulnerable parts of our biology, throwing too much information at us all at once. Step away. Don't let your nerves get hijacked. Be bored. Give back to the universe — bring your ideas to life.",
   },
   {
     title: '2. Connect with people.',
-    body: "Love is a force people have examined since the dawn of humanity for a reason. Love your friends, love your community, love the strangers on the street. Do it earnestly. While we're not cyborgs, let us hold on to the fundamentals of our humanity.",
+    body: "Love is a force people have examined since the dawn of times for a reason. Love your friends, love your community, love the strangers on the street. Do it earnestly. While we're not cyborgs, let us hold on to the fundamentals of our humanity.",
   },
   {
     title: '3. Return to the physical.',
