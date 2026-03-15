@@ -6,14 +6,6 @@ gsap.registerPlugin(ScrollTrigger);
 
 const SIT_END = 0.55;
 
-const LINKS = [
-  { label: 'The Marginalian',  href: 'https://www.themarginalian.org' },
-  { label: 'Colossal',         href: 'https://www.thisiscolossal.com' },
-  { label: 'Brainpickings',    href: 'https://www.themarginalian.org/archive' },
-  { label: 'Quiet Mind',       href: 'https://www.headspace.com' },
-  { label: 'Slow TV',          href: 'https://www.youtube.com/@NorwegianBroadcastingCorporation' },
-];
-
 const PARAGRAPHS: { title?: string; body: string }[] = [
   {
     body: "We are in a period of change. The old ways of doing things are breaking down, but the new ways haven't formed or taken shape yet. The future is covered by fog, the present by anxiety.",
@@ -33,6 +25,12 @@ const PARAGRAPHS: { title?: string; body: string }[] = [
     title: '3. Return to the physical.',
     body: "In a society where everything is rent-based and temporary, where ownership is being erased, the physical world is the last bastion of permanence. Plant a tree, build something, learn to create.",
   },
+  {
+    body: "For inspiration, things that help me stay grounded lately: reading and writing on Substack, dancing whenever I'm getting ready, spending time in physical presence of people I like, manually coding without ai help, walking without music, doing arithmetic with pen and paper, taking care of my physical appearance, watching videos on x1 speed.",
+  },
+  { 
+    body: "We shall be fine."
+  }
 ];
 
 const SECTION_H = () => window.innerHeight * 0.5;

@@ -71,6 +71,7 @@ export default function App() {
       scrub: true,
       onUpdate: (self) => {
         if (scrollHintRef.current) {
+          scrollHintRef.current.style.animation = 'none';
           const opacity = Math.max(0, 1 - self.progress * 2);
           scrollHintRef.current.style.opacity = String(opacity);
         }
