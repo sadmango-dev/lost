@@ -189,3 +189,14 @@
   text-align: center;
   letter-spacing: 0.02em;
 }
+
+
+@media (max-width: 600px) {
+  .site-title {
+    font-size: clamp(2rem, 8vw, 5rem);
+  }
+  .walk-label {
+    font-size: 0.5rem;
+    letter-spacing: 0.15em;
+  }
+}
