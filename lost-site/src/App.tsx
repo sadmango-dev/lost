@@ -143,7 +143,7 @@ export default function App() {
         what a mess we're in
       </div>
       <div ref={subtitleRef} className="site-subtitle">
-        (AI addition)
+        (AI edition)
       </div>
 
       {/* Scroll hint */}

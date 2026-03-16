@@ -4,7 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const SIT_END = 0.55;
+const SIT_END = 0.60;
 
 const PARAGRAPHS: { title?: string; body: string }[] = [
   {
